@@ -1,0 +1,31 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to Product Management</h1>
+    <p class="lead mb-4">Manage your products efficiently</p>
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Products</h5>
+                        <p class="card-text">View and manage your product inventory</p>
+                        <a asp-page="/Products/Index" class="btn btn-primary">Manage Products</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="mt-4">
+            <p>Please <a asp-page="/Account/Login">login</a> to access the system.</p>
+        </div>
+    }
+</div>

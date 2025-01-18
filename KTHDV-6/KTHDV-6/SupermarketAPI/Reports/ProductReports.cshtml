@@ -1,0 +1,145 @@
+﻿@page
+@model SupermarketAPI.Pages.Reports.ProductReportsModel
+@{
+    ViewData["Title"] = "Product Reports";
+}
+
+<h2>Product Reports</h2>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Filters</h5>
+                <form method="get" class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Date Range</label>
+                            <select asp-for="DateRange" class="form-control" onchange="this.form.submit()">
+                                <option value="7">Last 7 Days</option>
+                                <option value="30">Last 30 Days</option>
+                                <option value="90">Last 90 Days</option>
+                                <option value="365">Last Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Sort By</label>
+                            <select asp-for="SortBy" class="form-control" onchange="this.form.submit()">
+                                <option value="revenue">Revenue</option>
+                                <option value="quantity">Quantity Sold</option>
+                                <option value="profit">Profit</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Product Performance</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity Sold</th>
+                                <th>Revenue</th>
+                                <th>Cost</th>
+                                <th>Profit</th>
+                                <th>Profit Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var report in Model.ProductReports)
+                            {
+                                <tr>
+                                    <td>@report.ProductName</td>
+                                    <td>@report.TotalSold</td>
+                                    <td>@report.Revenue.ToString("C")</td>
+                                    <td>@report.Cost.ToString("C")</td>
+                                    <td>@report.Profit.ToString("C")</td>
+                                    <td>@(((report.Profit / report.Revenue) * 100).ToString("F2"))%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Top Selling Products</h5>
+                <canvas id="topProductsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Revenue Distribution</h5>
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Top Products Chart
+        const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+        new Chart(topProductsCtx, {
+            type: 'bar',
+            data: {
+                labels: @Json.Serialize(Model.ProductReports.Take(5).Select(p => p.ProductName)),
+                datasets: [{
+                    label: 'Quantity Sold',
+                    data: @Json.Serialize(Model.ProductReports.Take(5).Select(p => p.TotalSold)),
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'pie',
+            data: {
+                labels: @Json.Serialize(Model.ProductReports.Take(5).Select(p => p.ProductName)),
+                datasets: [{
+                    data: @Json.Serialize(Model.ProductReports.Take(5).Select(p => p.Revenue)),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.5)',
+                        'rgba(54, 162, 235, 0.5)',
+                        'rgba(255, 206, 86, 0.5)',
+                        'rgba(75, 192, 192, 0.5)',
+                        'rgba(153, 102, 255, 0.5)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+}

@@ -1,0 +1,136 @@
+﻿@page
+@model SupermarketAPI.Pages.Orders.CreateModel
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<h2>Create Order</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Order.CustomerName"></label>
+                <input asp-for="Order.CustomerName" class="form-control" />
+                <span asp-validation-for="Order.CustomerName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Order.CustomerEmail"></label>
+                <input asp-for="Order.CustomerEmail" class="form-control" type="email" />
+                <span asp-validation-for="Order.CustomerEmail" class="text-danger"></span>
+            </div>
+
+            <h4 class="mt-4">Order Items</h4>
+            <div id="orderItems">
+                @for (var i = 0; i < Model.Order.OrderItems.Count; i++)
+                {
+                    <div class="order-item border p-3 mb-3">
+                        <input type="hidden" asp-for="Order.OrderItems[i].ProductId" />
+
+                        <div class="form-group">
+                            <label>Product</label>
+                            <select asp-for="Order.OrderItems[i].ProductId"
+                                    asp-items="Model.ProductList"
+                                    class="form-control product-select"
+                                    onchange="updateProductDetails(this)">
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input asp-for="Order.OrderItems[i].Quantity"
+                                   class="form-control quantity-input"
+                                   type="number"
+                                   min="1"
+                                   onchange="updateTotalPrice(this)" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Unit Price</label>
+                            <input asp-for="Order.OrderItems[i].UnitPrice"
+                                   class="form-control unit-price"
+                                   readonly />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Total Price</label>
+                            <input asp-for="Order.OrderItems[i].TotalPrice"
+                                   class="form-control total-price"
+                                   readonly />
+                        </div>
+
+                        <button type="button" class="btn btn-danger" onclick="removeOrderItem(this)">
+                            Remove Item
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <button type="button" class="btn btn-secondary" onclick="addOrderItem()">
+                Add Item
+            </button>
+
+            <div class="form-group mt-4">
+                <label>Total Amount</label>
+                <input asp-for="Order.TotalAmount" class="form-control" readonly />
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Create Order</button>
+                <a asp-page="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateProductDetails(select) {
+            const orderItem = select.closest('.order-item');
+            const productId = select.value;
+
+            // Fetch product details from API
+            fetch(`/api/product/${productId}`)
+                .then(response => response.json())
+                .then(product => {
+                    orderItem.querySelector('.unit-price').value = product.price;
+                    updateTotalPrice(orderItem.querySelector('.quantity-input'));
+                });
+        }
+
+        function updateTotalPrice(quantityInput) {
+            const orderItem = quantityInput.closest('.order-item');
+            const quantity = quantityInput.value;
+            const unitPrice = orderItem.querySelector('.unit-price').value;
+            const totalPrice = quantity * unitPrice;
+
+            orderItem.querySelector('.total-price').value = totalPrice.toFixed(2);
+            updateOrderTotal();
+        }
+
+        function updateOrderTotal() {
+            const totalPrices = document.querySelectorAll('.total-price');
+            const orderTotal = Array.from(totalPrices)
+                .reduce((sum, input) => sum + parseFloat(input.value || 0), 0);
+
+            document.querySelector('[name="Order.TotalAmount"]').value = orderTotal.toFixed(2);
+        }
+
+        function addOrderItem() {
+            const template = document.querySelector('.order-item').cloneNode(true);
+            template.querySelectorAll('input').forEach(input => input.value = '');
+            document.getElementById('orderItems').appendChild(template);
+        }
+
+        function removeOrderItem(button) {
+            const orderItems = document.querySelectorAll('.order-item');
+            if (orderItems.length > 1) {
+                button.closest('.order-item').remove();
+                updateOrderTotal();
+            }
+        }
+    </script>
+}

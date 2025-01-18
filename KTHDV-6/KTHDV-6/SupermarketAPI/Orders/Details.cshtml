@@ -1,0 +1,74 @@
+﻿@page "{id:int}"
+@model SupermarketAPI.Pages.Orders.DetailsModel
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<h2>Order Details</h2>
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-3">Order ID</dt>
+        <dd class="col-sm-9">@Model.Order.Id</dd>
+
+        <dt class="col-sm-3">Customer Name</dt>
+        <dd class="col-sm-9">@Model.Order.CustomerName</dd>
+
+        <dt class="col-sm-3">Customer Email</dt>
+        <dd class="col-sm-9">@Model.Order.CustomerEmail</dd>
+
+        <dt class="col-sm-3">Total Amount</dt>
+        <dd class="col-sm-9">@Model.Order.TotalAmount.ToString("C")</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge badge-@(Model.Order.Status.ToLower() switch {
+                "completed" => "success",
+                "cancelled" => "danger",
+                _ => "warning"
+            })">
+                @Model.Order.Status
+            </span>
+        </dd>
+
+        <dt class="col-sm-3">Created At</dt>
+        <dd class="col-sm-9">@Model.Order.CreatedAt.ToLocalTime()</dd>
+
+        <dt class="col-sm-3">Last Updated</dt>
+        <dd class="col-sm-9">@Model.Order.UpdatedAt.ToLocalTime()</dd>
+    </dl>
+
+    <h4 class="mt-4">Order Items</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Order.OrderItems)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.UnitPrice.ToString("C")</td>
+                    <td>@item.TotalPrice.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3" class="text-right">Total:</th>
+                <th>@Model.Order.TotalAmount.ToString("C")</th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div>
+        <a asp-page="./Edit" asp-route-id="@Model.Order.Id" class="btn btn-primary">Edit</a>
+        <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>

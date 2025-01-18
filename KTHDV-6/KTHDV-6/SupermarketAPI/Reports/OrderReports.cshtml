@@ -1,0 +1,191 @@
+﻿@page
+@model SupermarketAPI.Pages.Reports.OrderReportsModel
+@{
+    ViewData["Title"] = "Order Reports";
+}
+
+<h2>Order Reports</h2>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Filters</h5>
+                <form method="get" class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Date Range</label>
+                            <select asp-for="DateRange" class="form-control" onchange="this.form.submit()">
+                                <option value="7">Last 7 Days</option>
+                                <option value="30">Last 30 Days</option>
+                                <option value="90">Last 90 Days</option>
+                                <option value="365">Last Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select asp-for="Status" class="form-control" onchange="this.form.submit()">
+                                <option value="">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Order Summary</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <h6>Total Orders</h6>
+                            <h4>@Model.TotalOrders</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <h6>Total Revenue</h6>
+                            <h4>@Model.TotalRevenue.ToString("C")</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <h6>Average Order Value</h6>
+                            <h4>@Model.AverageOrderValue.ToString("C")</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <h6>Profit Margin</h6>
+                            <h4>@(Model.ProfitMargin.ToString("F2"))%</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Order Details</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th>Items</th>
+                                <th>Profit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var report in Model.OrderReports)
+                            {
+                                <tr>
+                                    <td>@report.OrderId</td>
+                                    <td>@report.CustomerName</td>
+                                    <td>@report.TotalAmount.ToString("C")</td>
+                                    <td>
+                                        <span class="badge badge-@(report.Status.ToLower() switch {
+                                            "completed" => "success",
+                                            "cancelled" => "danger",
+                                            _ => "warning"
+                                        })">
+                                            @report.Status
+                                        </span>
+                                    </td>
+                                    <td>@report.CreatedAt.ToLocalTime().ToString("g")</td>
+                                    <td>@report.ItemCount</td>
+                                    <td>@report.Profit.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Daily Orders</h5>
+                <canvas id="dailyOrdersChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Status Distribution</h5>
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Daily Orders Chart
+        const dailyOrdersCtx = document.getElementById('dailyOrdersChart').getContext('2d');
+        new Chart(dailyOrdersCtx, {
+            type: 'line',
+            data: {
+                labels: @Json.Serialize(Model.DailyStats.Select(d => d.Date.ToString("MM/dd"))),
+                datasets: [{
+                    label: 'Orders',
+                    data: @Json.Serialize(Model.DailyStats.Select(d => d.OrderCount)),
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Status Distribution Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Pending', 'Completed', 'Cancelled'],
+                datasets: [{
+                    data: @Json.Serialize(Model.StatusDistribution),
+                    backgroundColor: [
+                        'rgba(255, 206, 86, 0.5)',
+                        'rgba(75, 192, 192, 0.5)',
+                        'rgba(255, 99, 132, 0.5)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+}

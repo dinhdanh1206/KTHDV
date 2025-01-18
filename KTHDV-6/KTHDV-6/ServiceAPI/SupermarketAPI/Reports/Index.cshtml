@@ -1,0 +1,65 @@
+﻿@page
+@model SupermarketAPI.Pages.Reports.IndexModel
+@{
+    ViewData["Title"] = "Reports Dashboard";
+}
+
+<h2>Reports Dashboard</h2>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Product Reports</h5>
+                <p class="card-text">View detailed reports about product sales and inventory.</p>
+                <a asp-page="./ProductReports" class="btn btn-primary">View Product Reports</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Order Reports</h5>
+                <p class="card-text">View detailed reports about orders and revenue.</p>
+                <a asp-page="./OrderReports" class="btn btn-primary">View Order Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Summary Statistics</h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <h6>Total Revenue</h6>
+                            <h4>@Model.TotalRevenue.ToString("C")</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <h6>Total Orders</h6>
+                            <h4>@Model.TotalOrders</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <h6>Total Products</h6>
+                            <h4>@Model.TotalProducts</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3 text-center">
+                            <h6>Average Order Value</h6>
+                            <h4>@Model.AverageOrderValue.ToString("C")</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
